@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Administration — EUROTRANSFER</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/styles.css" />
+  <style>
+    .admin-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: start; }
+    @media (max-width: 900px) { .admin-wrap { grid-template-columns: 1fr; } }
+    .admin-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; }
+    .admin-card + .admin-card { margin-top: 22px; }
+    .field { margin-bottom: 16px; }
+    .field label { display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-soft); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.4px; }
+    .field .hint { font-size: 0.75rem; color: var(--text-mute); font-weight: 400; text-transform: none; letter-spacing: 0; margin-top: 5px; }
+    .field input[type=text], .field input[type=url], .field input[type=number],
+    .field input[type=date], .field input[type=time], .field select, .field textarea {
+      width: 100%; background: var(--bg-2); border: 1px solid var(--border); color: var(--text);
+      border-radius: var(--radius-sm); padding: 11px 13px; font-size: 0.92rem; font-family: var(--font);
+    }
+    .field textarea { resize: vertical; line-height: 1.6; }
+    .field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: var(--red); }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .check { display: flex; align-items: center; gap: 10px; }
+    .check input { width: 18px; height: 18px; accent-color: var(--red); }
+    .check label { margin: 0; text-transform: none; letter-spacing: 0; font-size: 0.9rem; color: var(--text); }
+    .btn { display: inline-flex; align-items: center; gap: 8px; border: none; cursor: pointer; font-family: var(--font);
+      font-weight: 700; font-size: 0.9rem; padding: 12px 18px; border-radius: var(--radius-sm); transition: var(--transition); }
+    .btn-primary { background: var(--red); color: #fff; }
+    .btn-primary:hover { background: var(--red-2); }
+    .btn-ghost { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+    .btn-ghost:hover { border-color: var(--red); }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
+    .queue-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--border-soft); }
+    .queue-item:last-child { border-bottom: none; }
+    .queue-item .qi-title { font-size: 0.88rem; font-weight: 600; }
+    .queue-item .qi-meta { font-size: 0.74rem; color: var(--text-mute); }
+    .queue-item button { background: none; border: none; color: var(--red-2); cursor: pointer; font-size: 0.82rem; font-weight: 700; }
+    .code-out { background: #0d0d10; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px;
+      font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.78rem; color: #cfd0d6; white-space: pre; overflow: auto; max-height: 320px; }
+    .steps { counter-reset: step; list-style: none; margin: 0; padding: 0; }
+    .steps li { position: relative; padding-left: 38px; margin-bottom: 12px; color: var(--text-soft); font-size: 0.9rem; }
+    .steps li::before { counter-increment: step; content: counter(step); position: absolute; left: 0; top: -2px;
+      width: 26px; height: 26px; background: var(--red); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.8rem; }
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--red); color: #fff;
+      padding: 12px 22px; border-radius: 999px; font-weight: 700; font-size: 0.88rem; opacity: 0; visibility: hidden; transition: var(--transition); z-index: 300; box-shadow: var(--shadow); }
+    .toast.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+    .admin-note { font-size: 0.82rem; color: var(--text-mute); background: var(--bg-2); border: 1px dashed var(--border); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 18px; }
+    .preview-scope { pointer-events: none; }
+  </style>
+</head>
+<body data-page="">
+  <div id="site-header"></div>
+  <main>
+    <div class="container">
+      <div class="page-head">
+        <h1>Espace administration</h1>
+        <p class="page-sub">Rédige un article, télécharge le fichier mis à jour, redéploie. Aucun code à écrire.</p>
+      </div>
+
+      <div class="admin-note">
+        🔒 Cette page sert uniquement à <b>générer le fichier des articles</b> sur ton ordinateur. Elle ne modifie pas le site en direct et n'est pas reliée depuis le menu. Garde son adresse pour toi.
+      </div>
+
+      <div class="admin-wrap">
+        <!-- ============ Formulaire ============ -->
+        <div>
+          <div class="admin-card">
+            <div class="section-title" style="margin-top:0">Nouvel article</div>
+            <form id="art-form" autocomplete="off">
+              <div class="field">
+                <label for="f-title">Titre *</label>
+                <input type="text" id="f-title" placeholder="Ex. Anderlecht attire un jeune espoir..." required />
+              </div>
+
+              <div class="field-row">
+                <div class="field">
+                  <label for="f-category">Catégorie *</label>
+                  <select id="f-category">
+                    <option value="Transferts">Transferts</option>
+                    <option value="Mercato">Mercato</option>
+                    <option value="Matchs">Matchs &amp; Résultats</option>
+                    <option value="Faits divers">Faits divers</option>
+                    <option value="Compétitions">Compétitions européennes</option>
+                    <option value="Locale">Actualité locale</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="f-views">Nombre de vues</label>
+                  <input type="number" id="f-views" min="0" value="0" />
+                  <div class="hint">Sert au tri « Plus consultés ».</div>
+                </div>
+              </div>
+
+              <div class="field-row">
+                <div class="field">
+                  <label for="f-source">Source</label>
+                  <input type="text" id="f-source" value="Rédaction EUROTRANSFER" />
+                  <div class="hint">Média d'origine, ou « Rédaction EUROTRANSFER » pour un article original.</div>
+                </div>
+                <div class="field">
+                  <label for="f-sourceurl">Lien de la source</label>
+                  <input type="url" id="f-sourceurl" placeholder="https://..." />
+                  <div class="hint">Laisser vide pour un article original.</div>
+                </div>
+              </div>
+
+              <div class="field-row">
+                <div class="field">
+                  <label for="f-date">Date de publication *</label>
+                  <input type="date" id="f-date" />
+                </div>
+                <div class="field">
+                  <label for="f-time">Heure *</label>
+                  <input type="time" id="f-time" />
+                </div>
+              </div>
+
+              <div class="field check">
+                <input type="checkbox" id="f-featured" />
+                <label for="f-featured">Mettre en Une (grand article principal de l'accueil)</label>
+              </div>
+
+              <div class="field" style="margin-top:16px">
+                <label>Image / photo (facultatif)</label>
+                <input type="url" id="f-image-url" placeholder="Coller un lien d'image (https://...)" />
+                <div class="hint" style="margin:9px 0 7px">— ou — importe une photo depuis ton appareil (elle sera compressée et intégrée au site, sans hébergement externe) :</div>
+                <input type="file" id="f-image-file" accept="image/*" />
+                <div id="image-preview-wrap" style="display:none;margin-top:12px">
+                  <img id="image-preview" alt="aperçu" style="max-height:150px;border-radius:8px;border:1px solid var(--border)" />
+                  <div style="margin-top:8px">
+                    <button type="button" class="btn btn-ghost" id="btn-image-clear" style="padding:7px 13px">Retirer l'image</button>
+                    <span class="hint" id="image-size-note" style="display:inline-block;margin-left:8px"></span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="field" style="margin-top:16px">
+                <label for="f-lead">Sous-titre / chapô *</label>
+                <textarea id="f-lead" rows="2" placeholder="Phrase d'accroche affichée sous le titre." required></textarea>
+              </div>
+
+              <div class="field">
+                <label for="f-body">Contenu de l'article *</label>
+                <textarea id="f-body" rows="12" placeholder="Écris ton article ici.&#10;&#10;Sépare chaque paragraphe par une LIGNE VIDE.&#10;&#10;Les citations peuvent être écrites normalement avec des guillemets « »." required></textarea>
+                <div class="hint">Un paragraphe = un bloc de texte. Sépare-les par une ligne vide.</div>
+              </div>
+
+              <div class="btn-row">
+                <button type="button" class="btn btn-primary" id="btn-add">➕ Ajouter à la file</button>
+                <button type="button" class="btn btn-ghost" id="btn-copy">📋 Copier le bloc</button>
+                <button type="button" class="btn btn-ghost" id="btn-reset">Effacer le formulaire</button>
+              </div>
+            </form>
+          </div>
+
+          <!-- File d'attente -->
+          <div class="admin-card">
+            <div class="section-title" style="margin-top:0">Articles à publier <span class="count" id="queue-count">0</span></div>
+            <div id="queue-list"><p style="color:var(--text-mute);font-size:0.86rem;">Aucun article ajouté pour l'instant. Remplis le formulaire puis clique « Ajouter à la file ».</p></div>
+            <div class="btn-row" style="margin-top:16px">
+              <button type="button" class="btn btn-primary" id="btn-download">⬇️ Télécharger data.js</button>
+              <button type="button" class="btn btn-ghost" id="btn-clear-queue">Vider la file</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============ Aperçu + guide ============ -->
+        <div>
+          <div class="admin-card">
+            <div class="section-title" style="margin-top:0">Aperçu en direct</div>
+            <div class="preview-scope">
+              <div id="preview-card" style="max-width:340px;margin-bottom:20px"></div>
+            </div>
+            <div class="preview-scope" id="preview-article"></div>
+          </div>
+
+          <div class="admin-card">
+            <div class="section-title" style="margin-top:0">Comment publier</div>
+            <ol class="steps">
+              <li>Remplis le formulaire (tu peux empiler plusieurs articles dans la file).</li>
+              <li>Clique <b>Télécharger data.js</b> : le fichier contient tes anciens articles + les nouveaux.</li>
+              <li>Sur GitHub, ouvre le dossier <code>assets/js/</code> → <b>Add file → Upload files</b>, dépose le nouveau <code>data.js</code>, puis <b>Commit changes</b>.</li>
+              <li>GitHub Pages met le site à jour tout seul en ~1&nbsp;min. C'est en ligne&nbsp;!</li>
+            </ol>
+            <div class="admin-note" style="margin:14px 0 0">
+              💡 Astuce : seul le fichier <b>data.js</b> change quand tu ajoutes des articles.
+            </div>
+          </div>
+
+          <div class="admin-card">
+            <div class="section-title" style="margin-top:0">Bloc JS généré</div>
+            <div class="admin-note" style="margin-top:0">À coller manuellement en haut du tableau <code>ARTICLES</code> si tu préfères éditer <code>data.js</code> à la main.</div>
+            <div class="code-out" id="code-out">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  <div id="site-footer"></div>
+  <div class="toast" id="toast"></div>
+
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script>
+  (function () {
+    "use strict";
+    var MONTHS = ["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+    var CAT_MEDIA = { "Transferts":["m-transferts","🔁"], "Mercato":["m-mercato","📝"], "Matchs":["m-matchs","⚽"],
+      "Faits divers":["m-faits","⚠️"], "Compétitions":["m-compet","🏆"], "Locale":["m-locale","📍"] };
+    var QKEY = "et_admin_queue_v1";
+
+    var $ = function (id) { return document.getElementById(id); };
+    var existing = (window.ARTICLES || []).slice();
+    var queue = loadQueue();
+    var currentImage = "";   // URL ou photo (base64) de l'article en cours
+
+    function loadQueue() { try { return JSON.parse(localStorage.getItem(QKEY)) || []; } catch (e) { return []; } }
+    function saveQueue() { try { localStorage.setItem(QKEY, JSON.stringify(queue)); } catch (e) {} }
+
+    function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+    function slugify(str) {
+      return String(str).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
+        .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60) || "article";
+    }
+    function uniqueId(base) {
+      var taken = {}; existing.concat(queue).forEach(function (a) { taken[a.id] = 1; });
+      if (!taken[base]) return base;
+      var i = 2; while (taken[base + "-" + i]) i++; return base + "-" + i;
+    }
+    function frLabel(date, time) {
+      if (!date) return "";
+      var p = date.split("-"); var d = parseInt(p[2], 10), m = parseInt(p[1], 10), y = p[0];
+      var t = (time || "00:00").split(":"); var hh = parseInt(t[0], 10); var mm = t[1] || "00";
+      return d + " " + MONTHS[m - 1] + " " + y + " à " + hh + "h" + mm;
+    }
+    function bodyToArray(text) {
+      return String(text).split(/\n\s*\n/).map(function (s) { return s.replace(/\s*\n\s*/g, " ").trim(); }).filter(Boolean);
+    }
+
+    function readForm() {
+      var title = $("f-title").value.trim();
+      var date = $("f-date").value, time = $("f-time").value;
+      var art = {
+        id: uniqueId(slugify(title) + (date ? "-" + date.split("-")[0] : "")),
+        title: title,
+        category: $("f-category").value,
+        source: $("f-source").value.trim() || "Rédaction EUROTRANSFER",
+        sourceUrl: $("f-sourceurl").value.trim(),
+        date: date,
+        time: time,
+        dateLabel: frLabel(date, time),
+        views: parseInt($("f-views").value, 10) || 0,
+        featured: $("f-featured").checked,
+        lead: $("f-lead").value.trim(),
+        body: bodyToArray($("f-body").value)
+      };
+      var img = ($("f-image-url").value.trim()) || currentImage;
+      if (img) art.image = img;
+      return art;
+    }
+
+    /* ---------- Image : lien ou photo compressée ---------- */
+    function showImagePreview(src, note) {
+      if (!src) { $("image-preview-wrap").style.display = "none"; return; }
+      $("image-preview").src = src;
+      $("image-size-note").textContent = note || "";
+      $("image-preview-wrap").style.display = "block";
+    }
+    function clearImage() {
+      currentImage = ""; $("f-image-url").value = ""; $("f-image-file").value = "";
+      showImagePreview("", ""); renderPreview();
+    }
+    function compressImage(file, maxW, quality, cb) {
+      var reader = new FileReader();
+      reader.onload = function (e) {
+        var img = new Image();
+        img.onload = function () {
+          var scale = Math.min(1, maxW / img.width);
+          var w = Math.round(img.width * scale), h = Math.round(img.height * scale);
+          var canvas = document.createElement("canvas"); canvas.width = w; canvas.height = h;
+          canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+          cb(canvas.toDataURL("image/jpeg", quality));
+        };
+        img.onerror = function () { cb(null); };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function validate(a) {
+      var errs = [];
+      if (!a.title) errs.push("titre");
+      if (!a.date) errs.push("date");
+      if (!a.time) errs.push("heure");
+      if (!a.lead) errs.push("sous-titre");
+      if (!a.body.length) errs.push("contenu");
+      return errs;
+    }
+
+    /* ---------- Aperçu ---------- */
+    function mediaHtml(a) {
+      if (a.image) { return '<div class="media has-img"><img src="' + esc(a.image) + '" alt="" loading="lazy"></div>'; }
+      var m = CAT_MEDIA[a.category] || ["m-transferts","📰"];
+      return '<div class="media ' + m[0] + '" data-label="' + esc(a.category) + '"><span class="media-emoji">' + m[1] + '</span></div>';
+    }
+    function badge(cat) {
+      var cls = cat === "Locale" ? "badge badge-local" : "badge";
+      var lab = cat === "Locale" ? "Actu locale" : cat;
+      return '<span class="' + cls + '">' + esc(lab) + '</span>';
+    }
+    function renderPreview() {
+      var a = readForm();
+      var shortD = a.date ? (a.date.split("-")[2] + "/" + a.date.split("-")[1] + " · " + (a.time||"").replace(":","h")) : "";
+      $("preview-card").innerHTML =
+        '<article class="card">' +
+          '<div class="card-media">' + mediaHtml(a) + '</div>' +
+          '<div class="card-body">' +
+            '<div class="card-cat">' + badge(a.category) + '<span class="li-meta">' + esc(shortD) + '</span></div>' +
+            '<h3>' + esc(a.title || "Titre de l'article") + '</h3>' +
+            '<p class="card-lead">' + esc(a.lead || "Le sous-titre apparaîtra ici.") + '</p>' +
+            '<div class="card-foot"><span class="src">Source&nbsp;: <b>' + esc(a.source) + '</b></span><span class="views">👁 ' + a.views + '</span></div>' +
+          '</div>' +
+        '</article>';
+
+      var paras = a.body.map(function (p) { return "<p>" + esc(p) + "</p>"; }).join("") || "<p style='color:var(--text-mute)'>Le contenu de l'article s'affichera ici, paragraphe par paragraphe.</p>";
+      $("preview-article").innerHTML =
+        badge(a.category) +
+        '<h2 style="font-family:var(--font-head);font-size:1.6rem;font-weight:700;margin:10px 0 8px;line-height:1.12">' + esc(a.title || "Titre de l'article") + '</h2>' +
+        '<div class="meta-line" style="margin-bottom:14px">🕒 ' + esc(a.dateLabel || "date à venir") + ' · Source : <b>' + esc(a.source) + '</b></div>' +
+        (a.image ? '<div class="article-figure" style="height:210px;margin-bottom:14px">' + mediaHtml(a) + '</div>' : '') +
+        '<p class="article-lead" style="font-size:1.05rem">' + esc(a.lead || "Sous-titre.") + '</p>' +
+        '<div class="article-body" style="font-size:0.95rem">' + paras + '</div>';
+
+      $("code-out").textContent = a.title ? (JSON.stringify(a, null, 2) + ",") : "—";
+    }
+
+    /* ---------- File d'attente ---------- */
+    function renderQueue() {
+      $("queue-count").textContent = queue.length;
+      if (!queue.length) {
+        $("queue-list").innerHTML = '<p style="color:var(--text-mute);font-size:0.86rem;">Aucun article ajouté pour l\'instant. Remplis le formulaire puis clique « Ajouter à la file ».</p>';
+        return;
+      }
+      $("queue-list").innerHTML = queue.map(function (a, i) {
+        return '<div class="queue-item"><div><div class="qi-title">' + esc(a.title) + '</div>' +
+          '<div class="qi-meta">' + esc(a.category) + ' · ' + esc(a.dateLabel) + (a.featured ? ' · ⭐ Une' : '') + '</div></div>' +
+          '<button data-i="' + i + '">Retirer</button></div>';
+      }).join("");
+      Array.prototype.forEach.call($("queue-list").querySelectorAll("button"), function (b) {
+        b.addEventListener("click", function () { queue.splice(parseInt(b.getAttribute("data-i"), 10), 1); saveQueue(); renderQueue(); });
+      });
+    }
+
+    /* ---------- Génération data.js ---------- */
+    function buildFullFile(newOnes) {
+      var all = newOnes.concat(existing.map(function (a) { return Object.assign({}, a); }));
+      // Un seul article en Une : on garde le premier featured, on désactive les autres
+      var seen = false;
+      all.forEach(function (a) { if (a.featured && !seen) { seen = true; } else { a.featured = false; } });
+      var header = "/* =============================================================================\n" +
+        "   EUROTRANSFER — Base de données des articles\n" +
+        "   Fichier généré via la page d'administration (admin.html).\n" +
+        "   Pour ajouter un article : utilisez admin.html, ou copiez un bloc ci-dessous.\n" +
+        "   ============================================================================= */\n\n";
+      return header + "const ARTICLES = " + JSON.stringify(all, null, 2) + ";\n\n" +
+        "if (typeof window !== \"undefined\") {\n  window.ARTICLES = ARTICLES;\n}\n";
+    }
+    function download(filename, text) {
+      var blob = new Blob([text], { type: "application/javascript;charset=utf-8" });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a"); a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    }
+
+    function toast(msg) {
+      var t = $("toast"); t.textContent = msg; t.classList.add("show");
+      clearTimeout(t._h); t._h = setTimeout(function () { t.classList.remove("show"); }, 2200);
+    }
+
+    /* ---------- Événements ---------- */
+    $("art-form").addEventListener("input", renderPreview);
+    $("art-form").addEventListener("change", renderPreview);
+
+    $("f-image-url").addEventListener("input", function () {
+      var u = $("f-image-url").value.trim();
+      if (u) { currentImage = ""; $("f-image-file").value = ""; showImagePreview(u, "Image liée (URL)"); }
+      else { showImagePreview("", ""); }
+      renderPreview();
+    });
+    $("f-image-file").addEventListener("change", function () {
+      var file = this.files && this.files[0];
+      if (!file) return;
+      $("f-image-url").value = "";
+      showImagePreview("", "Compression en cours…");
+      compressImage(file, 1200, 0.72, function (dataUrl) {
+        if (!dataUrl) { toast("Image illisible"); return; }
+        currentImage = dataUrl;
+        var kb = Math.round(dataUrl.length * 0.75 / 1024);
+        showImagePreview(dataUrl, "Photo intégrée · ~" + kb + " Ko");
+        renderPreview();
+      });
+    });
+    $("btn-image-clear").addEventListener("click", clearImage);
+
+    $("btn-add").addEventListener("click", function () {
+      var a = readForm(); var errs = validate(a);
+      if (errs.length) { toast("Champs manquants : " + errs.join(", ")); return; }
+      queue.push(a); saveQueue(); renderQueue();
+      $("art-form").reset(); setDefaults(); clearImage();
+      toast("Article ajouté à la file ✓");
+    });
+
+    $("btn-copy").addEventListener("click", function () {
+      var a = readForm(); if (!a.title) { toast("Renseigne au moins le titre"); return; }
+      var block = JSON.stringify(a, null, 2) + ",";
+      if (navigator.clipboard) navigator.clipboard.writeText(block).then(function(){ toast("Bloc copié ✓"); }, function(){ toast("Copie impossible"); });
+      else toast("Copie non supportée");
+    });
+
+    $("btn-reset").addEventListener("click", function () { $("art-form").reset(); setDefaults(); clearImage(); });
+
+    $("btn-download").addEventListener("click", function () {
+      var current = readForm();
+      var newOnes = queue.slice();
+      if (current.title && !validate(current).length) newOnes = newOnes.concat([current]); // inclut l'article en cours s'il est complet
+      if (!newOnes.length) { toast("Ajoute au moins un article valide"); return; }
+      download("data.js", buildFullFile(newOnes));
+      toast("data.js téléchargé (" + newOnes.length + " nouvel(s) article(s)) ✓");
+    });
+
+    $("btn-clear-queue").addEventListener("click", function () {
+      if (queue.length && !confirm("Vider la file d'attente ?")) return;
+      queue = []; saveQueue(); renderQueue(); toast("File vidée");
+    });
+
+    /* ---------- Valeurs par défaut ---------- */
+    function pad(n){ return (n<10?"0":"") + n; }
+    function setDefaults() {
+      var now = new Date();
+      $("f-date").value = now.getFullYear() + "-" + pad(now.getMonth()+1) + "-" + pad(now.getDate());
+      $("f-time").value = pad(now.getHours()) + ":" + pad(now.getMinutes());
+      $("f-source").value = "Rédaction EUROTRANSFER";
+      $("f-views").value = "0";
+    }
+
+    setDefaults();
+    renderQueue();
+    renderPreview();
+  })();
+  </script>
+</body>
+</html>

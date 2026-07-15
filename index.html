@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="EUROTRANSFER — média football indépendant : transferts, mercato, matchs, faits divers, compétitions européennes et actualités locales. Sans publicité, sans abonnement." />
+  <meta name="theme-color" content="#ffffff" />
+  <title>EUROTRANSFER — L'actualité football, transferts & mercato</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body data-page="accueil">
+  <div id="site-header"></div>
+
+  <main>
+    <div class="container" id="home-root">
+      <!-- Article principal -->
+      <div id="home-hero"></div>
+
+      <div class="layout-grid">
+        <div class="main-col">
+          <!-- Dernières informations -->
+          <section>
+            <div class="section-title">Dernières informations</div>
+            <div class="cards cards-2" id="home-latest"></div>
+          </section>
+
+          <!-- Transferts du jour -->
+          <section class="mt-lg">
+            <div class="section-title">Transferts du jour</div>
+            <div class="cards cards-2" id="home-transfers"></div>
+          </section>
+
+          <!-- Matchs récents -->
+          <section class="mt-lg">
+            <div class="section-title">Matchs récents & résultats</div>
+            <div class="cards cards-2" id="home-matches"></div>
+          </section>
+
+          <!-- Actualité locale -->
+          <section class="mt-lg">
+            <div class="section-title">Actualité locale <span class="count">Rédaction EUROTRANSFER</span></div>
+            <div class="cards cards-2" id="home-local"></div>
+          </section>
+        </div>
+
+        <!-- Barre latérale -->
+        <aside class="sidebar">
+          <div class="widget">
+            <div class="widget-title">Les plus lus</div>
+            <div id="home-mostread"></div>
+          </div>
+
+          <div class="widget">
+            <div class="widget-title">Fil d'actu</div>
+            <div id="home-feed"></div>
+          </div>
+
+          <div class="widget">
+            <div class="widget-title">Rubriques</div>
+            <div class="tag-cloud">
+              <a href="transferts.html">Transferts</a>
+              <a href="mercato.html">Mercato</a>
+              <a href="matchs.html">Matchs</a>
+              <a href="faits-divers.html">Faits divers</a>
+              <a href="competitions.html">Compétitions</a>
+              <a href="actualites-locales.html">Actu locale</a>
+            </div>
+          </div>
+
+          <div class="widget newsletter">
+            <div class="widget-title">À propos</div>
+            <p>EUROTRANSFER regroupe l'actualité football de plusieurs sources reconnues, réécrite et sourcée, ainsi que des informations locales de la rédaction.</p>
+            <p class="note">Sans publicité · Sans abonnement · Sans monétisation</p>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <div id="site-footer"></div>
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
